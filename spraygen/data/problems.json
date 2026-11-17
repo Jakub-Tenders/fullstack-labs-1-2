@@ -1,0 +1,6 @@
+[
+  { "id": 1, "slug": "crimp-ladder", "title": "Crimp Ladder", "setterName": "Alex Stone", "targetGrade": "V3", "holdStyle": "Crimps" },
+  { "id": 2, "slug": "sloper-slap", "title": "Sloper Slap", "setterName": "Mira Chalk", "targetGrade": "V5", "holdStyle": "Slopers" },
+  { "id": 3, "slug": "pinch-traverse", "title": "Pinch Traverse", "setterName": "Sam Rope", "targetGrade": "V2", "holdStyle": "Pinches" },
+  { "id": 4, "slug": "jug-haul", "title": "Jug Haul", "setterName": "Lina Hook", "targetGrade": "V0", "holdStyle": "Jugs" }
+]
