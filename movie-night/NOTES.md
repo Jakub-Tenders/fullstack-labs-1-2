@@ -66,3 +66,20 @@
 | Default (Part D) | `○ /movies` | Frozen at build time | ~3 ms | Printed once, during `npm run build` |
 | `force-dynamic` (Part E) | `ƒ /movies` | New on every request | ~1 s | Printed on every request |
 | `/movies-client` (Part F) | – | – | – | HTML contains "Loading movies..." and no title; `/movies.json` fetched by the browser |
+
+## Lab 3
+
+1. **`NavLink` uses `usePathname`, yet the page source of `/movies/2` already contains `aria-current="true"`. How?**
+   A Client Component is not only run in the browser: it is also rendered on the server to produce the first HTML. During that render, Next.js gives `usePathname` the path of the request (or of the prerendered page), so `NavLink` computes `aria-current` on the server and the attribute is in the HTML. In the browser, it hydrates and then updates the attribute when the path changes.
+
+2. **Why does `generateStaticParams` return `String(movie.id)`, and why is `/movies/42` a 404 without running the page?**
+   Params come from the URL, and URL segments are always strings, so the params must be strings (`{ id: "2" }`). `getMovie` compares with `String(movie.id) === id` for the same reason. With `dynamicParams = false`, only the ids returned by `generateStaticParams` exist. Any other id is rejected by the router as a 404 before the page code runs.
+
+3. **Why is the note kept between `/movies` and `/movies/2`, and lost through `/about`?**
+   `app/movies/layout.tsx` wraps both `/movies` and `/movies/2`. When you navigate between them with links, only the page below the layout changes, so the layout and the state of its input stay mounted. `/about` is outside that layout, so going there unmounts the movies layout. Coming back mounts a new one, with an empty input.
+
+4. **Where is the real message of the error in Part E step 4, and why is it not sent to the browser?**
+   Under `npm start`, the browser shows a generic message ("An error occurred in the Server Components render…") with a digest. The real message, "Movie database unavailable", is only printed in the terminal of the server, with the same digest. In production, Next.js hides the messages of server errors, because they can leak internal details (queries, paths, secrets) to visitors.
+
+5. **Why does "Loading the movies..." appear on `/movies/2` under `npm run dev`, but not under `npm start`, while it still appears on `/movies`?**
+   `npm run dev` renders every page on every request, so `/movies/2` waits for `getMovie` and the loading state is shown meanwhile. Under `npm start`, `/movies/2` is prerendered at build time (●), so its HTML is ready at once and there is nothing to wait for. `/movies` is still dynamic (`force-dynamic`, ƒ): it waits one second for `getMovies` on each request, so `loading.tsx` is shown.
