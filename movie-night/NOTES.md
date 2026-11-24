@@ -83,3 +83,14 @@
 
 5. **Why does "Loading the movies..." appear on `/movies/2` under `npm run dev`, but not under `npm start`, while it still appears on `/movies`?**
    `npm run dev` renders every page on every request, so `/movies/2` waits for `getMovie` and the loading state is shown meanwhile. Under `npm start`, `/movies/2` is prerendered at build time (●), so its HTML is ready at once and there is nothing to wait for. `/movies` is still dynamic (`force-dynamic`, ƒ): it waits one second for `getMovies` on each request, so `loading.tsx` is shown.
+
+## Lab 4, part 1
+
+1. **Which are the 7 calls of the build, and why does the API receive only one call per movie?**
+   The first call is `GET /api/movies`, from `generateStaticParams`, which needs the list of ids. The next six are `GET /api/movies/1` to `GET /api/movies/6`, one for each prerendered movie page. `/movies` is `force-dynamic`, so it does not call the API during the build. `generateMetadata` and the page both call `getMovie(id)` with the same URL and the same options in the same render. Next.js memoizes `fetch` calls (request memoization): the second call reuses the result of the first one, so the API receives only one request per movie.
+
+2. **In break 3, where did the value of `MOVIES_API_KEY` end up, who can read it, and where should it be used instead?**
+   It was not in the JavaScript of `.next/static`, but it was in the HTML of the six prerendered movie pages (`.next/server/app/movies/*.html`). The Client Component is also rendered on the server, where every variable of `.env.local` exists, so the value was written into the HTML. Anyone who opens a movie page and views its source can read it. A secret must only be used in server code, for example in `lib/movies.ts` (which is `server-only`) when it calls the API, and never rendered or passed as a prop to a Client Component.
+
+3. **Why does Next.js refuse a function as a prop (break 1) and a `server-only` import in a Client Component (break 2)?**
+   The props of a Client Component that come from a Server Component are serialized into the RSC payload, which is data sent to the browser. A function is code with its closure: it cannot be turned into data and rebuilt in the browser, so Next.js refuses it. The browser can only receive values such as strings, numbers, arrays and plain objects. A Client Component is bundled into the JavaScript sent to the browser. `lib/movies.ts` imports `server-only` to say that this code must never be sent there, because it reads server variables and calls a private API. So the build fails when a Client Component uses it. If the import is not used, it is removed from the bundle and the build passes.
